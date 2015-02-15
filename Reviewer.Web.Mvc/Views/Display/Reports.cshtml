@@ -1,0 +1,102 @@
+﻿@model dynamic
+
+@{
+    this.Layout = "~/Views/_MenuLayout.cshtml";
+    this.ViewBag.Title = "Reports";
+    this.ViewBag.ActionName = "Reports";
+}
+
+@section  scripts{
+
+    <script src="@Url.Content("~/Binding/ViewModels/ReportsViewModel.js")" type="text/javascript"></script>
+}
+
+@section css {}
+@section JQueryOnReady{}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="boxModule">
+            <div class="boxModuleHeader" data-bind="loadingWhen: isCommandRunning, loaderClass: 'loader-dark'">
+                @(this.ViewBag.Title)
+            </div>
+            <div id="content">
+                <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
+                    <li class="active"><a href="#exception" data-toggle="tab"><span class=" glyphicon glyphicon-flag"> &nbsp;</span>Exception Reports</a></li>
+                    <li><a href="#management" data-toggle="tab">&nbsp; <span class='glyphicon glyphicon-list-alt'></span>&nbsp;  Management Reports</a></li>
+
+                </ul>
+                <div id="reports-tab-content" class="top-buffer tab-content">
+                    <div class="tab-pane active" id="exception">
+                        <div style="margin: 5px; min-height: 100%; max-height: 100%">
+                            <div class="col-md-offset-1 form-group">
+                                <select id="uploadTypeSel" class="form-control" data-placeholder="Select Upload Type" data-bind="chosen: { chosenOption: { allow_single_deselect: true }, source: uploadTypes, valueProp: 'Name', selectedValue: selectedUploadType, displayProp: 'Name' }"></select>
+                                &nbsp;&nbsp;&nbsp; & &nbsp;&nbsp;&nbsp; 
+                            <select id="filenamesSel" class="form-control" data-placeholder="File Name" data-bind="chosen: { chosenOption: { allow_single_deselect: true }, source: fileNames, valueProp: 'Name', selectedValue: selectedFileName, displayProp: 'Name' }"></select>
+
+
+                                <br />
+                                <br />
+                                <div data-bind="loadingWhen: isCommandRunning, loaderClass: 'loader-dark'">
+                                    <button class="btn btn-primary" data-bind="click: search, enable: selectedUploadType() !== undefined && selectedFileName() !== undefined  ">Search  &nbsp;<span class=" glyphicon glyphicon-search"></span></button>
+                                </div>
+                                <br />
+                                <br />
+
+                            </div>
+
+
+                            <table id="grid">
+                                <tr>
+                                    <td></td>
+                                </tr>
+                            </table>
+                            <div id="pager"></div>
+                            <br />
+                        </div>
+                    </div>
+                    <div class="tab-pane  col-md-12" id="management">
+                        <div class="col-md-12" style="margin: 5px; min-height: 100%; max-height: 100%">
+                            <div class="row top-buffer form-group">
+                                <div class="col-md-4">
+                                    <span class="label label-info">Period</span>
+
+                                    <div class="input-group date" id="dpMonths"
+                                        data-date=""
+                                        data-date-format="mm/yyyy"
+                                        data-date-viewmode="years"
+                                        data-date-minviewmode="months">
+
+                                        <input class="form-control" size="16" type="text" value="" readonly="">
+                                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <span class="label label-info">Disclosure Type</span>
+                                    <div>
+                                        <select id="interestTypesSel" style="width: 300px;" class="form-control" data-placeholder="Select Interest Type" data-bind="chosen: { chosenOption: { allow_single_deselect: true }, source: interestTypes, valueProp: 'Id', selectedValue: selectedInterestType, displayProp: 'Name' }"></select>
+                                    </div>
+
+                                    <div class="top-buffer row pull-left col-md-offset-4" data-bind="loadingWhen: isCommandRunning, loaderClass: 'loader-dark'">
+                                        <button class="btn btn-primary" data-bind="click: searchMgmt, enable: selectedInterestType() !== undefined && selectedPeriod() !== undefined  ">Search  &nbsp;<span class=" glyphicon glyphicon-search"></span></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 table-responsive">
+                                <table id="gridM" class="table">
+                                    <tr>
+                                        <td></td>
+                                    </tr>
+                                </table>
+                                <div id="pagerM"></div>
+                            <br />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

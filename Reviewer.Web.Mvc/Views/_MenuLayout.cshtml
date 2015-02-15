@@ -1,0 +1,48 @@
+﻿@{
+    Layout = "~/Views/_Layout.cshtml";
+
+    string dashBoardActiveCssClass = null;
+    string scenariaActiveCssClass = null;
+
+    if (ViewBag.ActionName == "Dashboard")
+    {
+        dashBoardActiveCssClass = "active";
+    }
+
+    if (ViewBag.ActionName == "Scenaria")
+    {
+        scenariaActiveCssClass = "active";
+    }
+}
+
+
+
+@RenderSection("Css", false)
+
+
+<div class="col-md-2 col-xs-3">
+    <div class="boxModule">
+        <div class="boxModuleHeader">Menu</div>
+        <div class="boxModuleBody">
+            <ul class="boxModuleList">
+
+                <li class="@dashBoardActiveCssClass">
+                    <a href="@Url.Action("Dashboard", "Home")">Dashboard</a>
+                </li>
+                
+                <li class="@scenariaActiveCssClass">
+                    <a href="@Url.Action("Scenaria", "Home")">Scenaria</a>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-10 col-xs-9">@RenderBody()</div>
+
+@RenderSection("scripts", false)
+
+@section JQueryOnReady {
+    @RenderSection("JQueryOnReady", false)
+}

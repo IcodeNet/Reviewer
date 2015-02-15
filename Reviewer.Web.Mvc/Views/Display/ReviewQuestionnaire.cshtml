@@ -1,0 +1,87 @@
+﻿@model dynamic
+
+@{
+    this.Layout = "~/Views/_MenuLayout.cshtml";
+    this.ViewBag.Title = "Review Questionnaire Screen";
+    this.ViewBag.ActionName = "ReviewQuestionnaire";
+}
+
+@section  scripts
+{
+    <script src="@(this.Url.Content("~/Binding/ViewModels/ReviewQuestionnaireViewModel.js"))" type="text/javascript"> </script>
+    <script src="@(this.Url.Content("~/Scripts/NiceScroll/jquery.nicescroll.min.js"))" type="text/javascript"> </script>
+}
+
+@section css {
+    <style>
+        .wrap {
+            word-wrap: break-word; /* IE 5.5+ and CSS3 */
+            white-space: pre-wrap; /* CSS3 */
+            white-space: -pre-wrap; /* Opera 4-6 */
+            white-space: -o-pre-wrap; /* Opera 7 */
+            white-space: normal !important;
+            height: auto;
+            vertical-align: text-top;
+            padding-top: 4px;
+            padding-bottom: 3px;
+            font-family: arial;
+        }
+
+        .ui-priority-secondary * {
+            //background-color: #00ced1 !important;
+        }
+    </style>
+
+}
+
+@section JQueryOnReady
+{
+
+// $('#wizard').smartWizard('showMessage','Please fill in all questions.');
+
+}
+
+
+<div class="row">
+    <div class="col-md-12">
+    </div>
+
+    <div class="col-md-12">
+        <div class="boxModule">
+            <div class="boxModuleHeader" data-bind="loadingWhen: isCommandRunning, loaderClass: 'loader-dark'">
+                @(this.ViewBag.Title)
+            </div>
+            <div class="boxModuleBody">
+                <!-- Smart Wizard -->
+                <div id="wizard" class="swMain">
+                    <ul id="wizardTabs"></ul>
+                </div>
+                <!-- End SmartWizard Content -->
+
+                @* <div data-bind="dump: $root"></div>*@
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalRejectComment" tabindex="-1" style="display: none" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                   
+                    <h4 class="modal-title" id="myModalLabel">Please provide the reason that you rejected the Return.</h4>
+                </div>
+                <div class="modal-body">
+                    <textarea rows="10" id="comments"  class="span6" id="reasonForRejection"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btnCancel" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" id="btnReject" class="btn btn-primary">Submit Comment and 'Reject'</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+
+</div>
