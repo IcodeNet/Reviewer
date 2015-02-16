@@ -5,7 +5,7 @@ window.Reviewer = window.Reviewer || {};
     var vm = function () {
 
         var self = this;
-        self.viewModelHelper = new Reviewer.ViewModelHelper();
+        self.ajaxCaller = new Reviewer.AjaxCaller();
         self.zones = ko.observableArray();
         self.users = ko.observableArray();
         self.selectedZone = ko.observable(); // Nothing selected by default
@@ -13,23 +13,23 @@ window.Reviewer = window.Reviewer || {};
         self.isCommandRunning = ko.observable(false);
 
         self.loadAvailableZones = function (model) {
-            self.viewModelHelper.apiGet('api/resources/clusters',
+            self.ajaxCaller.apiGet('api/resources/Scenarios',
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.zones);
-                    toastr.info("Loaded " + result.length, "Clusters");
+                    toastr.info("Loaded " + result.length, "Scenarios");
                 });
         };
 
         self.addUser = function () {
             self.isCommandRunning(true);
 
-            var newClusterApprovers = [{ ClusterId: this.selectedZone() }];
-            var dto = { ClusterUserApproverMappings: newClusterApprovers, UserEmail: this.userToAdd() };
+            var newScenarioApprovers = [{ ScenarioId: this.selectedZone() }];
+            var dto = { ScenarioUserApproverMappings: newScenarioApprovers, UserEmail: this.userToAdd() };
             this.userToAdd("");
             $('.typeahead').val('');
 
-            self.viewModelHelper.apiPost("api/operations/clusterapprovers",
+            self.ajaxCaller.apiPost("api/operations/Scenarioapprovers",
                 dto,
                 function (result) {
                     self.isCommandRunning(false);
@@ -53,7 +53,7 @@ window.Reviewer = window.Reviewer || {};
         self.deleteUser = function (item) {
             self.isCommandRunning(true);
 
-            self.viewModelHelper.apiDelete("api/operations/DeleteClusterApprover",
+            self.ajaxCaller.apiDelete("api/operations/DeleteScenarioApprover",
                 { id: item.Id },
                 function (result) {
                     self.isCommandRunning(false);
@@ -68,17 +68,17 @@ window.Reviewer = window.Reviewer || {};
                   });
         };
 
-        self.loadClusterApprovers = function (model) {
-            self.viewModelHelper.apiGet('api/resources/clusterapprovers',
+        self.loadScenarioApprovers = function (model) {
+            self.ajaxCaller.apiGet('api/resources/Scenarioapprovers',
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.users);
-                    toastr.info("Loaded " + result.length, "Cluster Approvers.");
+                    toastr.info("Loaded " + result.length, "Scenario Approvers.");
                 });
         };
 
         self.warmUpMembershipService = function (model) {
-            self.viewModelHelper.apiGet('user/AutocompleteUserBRID?query=vyron',
+            self.ajaxCaller.apiGet('user/AutocompleteUserBRID?query=vyron',
                 null,
                 function (result) {
                     // do nothing this is so that autocomplete service is responsive
@@ -117,13 +117,13 @@ window.Reviewer = window.Reviewer || {};
 
     };
 
-    ns.SetClusterApproverViewModel = vm;
+    ns.SetScenarioApproverViewModel = vm;
 }(window.Reviewer));
 
 
 $(function () {
 
-    var viewModel = new Reviewer.SetClusterApproverViewModel();
+    var viewModel = new Reviewer.SetScenarioApproverViewModel();
     viewModel.loadAvailableZones(viewModel, { insertmessages: false });
 
     $(".tag-delete").live("click", function () {
@@ -159,11 +159,11 @@ $(function () {
     var myGrid = $("#grid").jqGrid({
         datatype: 'json',
         mtype: 'GET',
-        url: Reviewer.rootPath + "api/resources/clusterapproversjson",
-        colNames: ["Id", "ClusterName", "UserEmail", "UserName", ""],
+        url: Reviewer.rootPath + "api/resources/Scenarioapproversjson",
+        colNames: ["Id", "ScenarioName", "UserEmail", "UserName", ""],
         colModel: [
             { name: "Id", width: 35, align: "center", key: true },
-            { name: "ClusterName", width: 85, align: "center", "index": "ClusterName" },
+            { name: "ScenarioName", width: 85, align: "center", "index": "ScenarioName" },
             { name: "UserEmail", width: 90, "index": "UserEmail", align: "center" },
             { name: "UserName", width: 80, "index": "UserName", align: "center" },
             {
@@ -188,7 +188,7 @@ $(function () {
         save: true,
         gridview: true,
         autoencode: true,
-        caption: "&nbsp;<span class='icon-group icon-large'>&nbsp;</span>Cluster Approvers",
+        caption: "&nbsp;<span class='icon-group icon-large'>&nbsp;</span>Scenario Approvers",
         autowidth: true,
         shrinktofit: false,
         height: "100%",

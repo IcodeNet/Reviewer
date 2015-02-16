@@ -11,7 +11,7 @@ window.Reviewer = window.Reviewer || {};
         var self = this;
 
         //properties
-        self.viewModelHelper = new ns.ViewModelHelper();
+        self.ajaxCaller = new ns.AjaxCaller();
 
         self.isCommandRunning = ko.observable(false);
         self.elements = ko.observableArray();
@@ -72,11 +72,11 @@ window.Reviewer = window.Reviewer || {};
 
         self.loadAvailableZones = function (model) {
             self.isCommandRunning(true);
-            self.viewModelHelper.apiGet('api/resources/clusters',
+            self.ajaxCaller.apiGet('api/resources/Scenarios',
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.zones);
-                    // toastr.info("Loaded " + result.length, "Clusters");
+                    // toastr.info("Loaded " + result.length, "Scenarios");
                 }, function (error) {
                     toastr.error(error.responseText, "Operation Result");
                 },
@@ -96,7 +96,7 @@ window.Reviewer = window.Reviewer || {};
 
 
 
-            self.viewModelHelper.apiGet('api/resources/businesslinesjson?forCluster=' + encodeURIComponent(self.selectedZone()),
+            self.ajaxCaller.apiGet('api/resources/businesslinesjson?forScenario=' + encodeURIComponent(self.selectedZone()),
                 null,
                 function (result) {
                     var mappedEntities = $.map(result, function (item) { return new BusinessLine(item); });
@@ -118,7 +118,7 @@ window.Reviewer = window.Reviewer || {};
                 this.Name = ko.observable(data);
             }
 
-            self.viewModelHelper.apiGet('api/resources/legalentitiesjson?forBusinessLine=' + encodeURIComponent(self.selectedCategory()),
+            self.ajaxCaller.apiGet('api/resources/legalentitiesjson?forBusinessLine=' + encodeURIComponent(self.selectedCategory()),
                 null,
                 function (result) {
                     var mappedEntities = $.map(result, function (item) { return new LegalEntity(item); });
@@ -133,7 +133,7 @@ window.Reviewer = window.Reviewer || {};
         };
 
         self.loadAvailableProfitCentres = function (model) {
-            self.viewModelHelper.apiGet('api/resources/profitcentres?forLegalEntity=' + encodeURIComponent(self.selectedLegalEntity()),
+            self.ajaxCaller.apiGet('api/resources/profitcentres?forLegalEntity=' + encodeURIComponent(self.selectedLegalEntity()),
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.profitCentres);
@@ -142,7 +142,7 @@ window.Reviewer = window.Reviewer || {};
         };
 
         self.loadAvailableStructuredEntities = function (model) {
-            self.viewModelHelper.apiGet('api/resources/structuredentities?forProfitCentre=' + encodeURIComponent(self.selectedProfitCentre()),
+            self.ajaxCaller.apiGet('api/resources/structuredentities?forProfitCentre=' + encodeURIComponent(self.selectedProfitCentre()),
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.structuredEntities);
@@ -153,7 +153,7 @@ window.Reviewer = window.Reviewer || {};
         self.loadAvailableDisclosureTypes = function (model) {
             var url = 'api/resources/disclosuretypes?forProfitCentre=' + encodeURIComponent(self.selectedProfitCentre()) + '&forStructureEntity=' + encodeURIComponent(self.selectedStructuredEntity());
 
-            self.viewModelHelper.apiGet(url,
+            self.ajaxCaller.apiGet(url,
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.disclosureTypes);
@@ -162,8 +162,8 @@ window.Reviewer = window.Reviewer || {};
 
 
 
-        self.loadClusterReturnRecords = function (model) {
-            self.viewModelHelper.apiGet('api/resources/returnrecords',
+        self.loadScenarioReturnRecords = function (model) {
+            self.ajaxCaller.apiGet('api/resources/returnrecords',
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.elements);
@@ -176,7 +176,7 @@ window.Reviewer = window.Reviewer || {};
         self.getDto = function () {
             return {
                 FilterKeyValues: [
-                    { key: "Cluster", value: self.selectedZone() },
+                    { key: "Scenario", value: self.selectedZone() },
                     { key: "BusinessLine", value: self.selectedCategory() },
                     { key: "LegalEntity", value: self.selectedLegalEntity() },
                     { key: "ProfitCentre", value: self.selectedProfitCentre() },
@@ -216,7 +216,7 @@ window.Reviewer = window.Reviewer || {};
         self.operateOnAllRecordsSelected = function (operation, statusId ,callback) {
             self.isCommandRunning(true);
 
-            self.viewModelHelper.apiPost("api/operations/" + operation,
+            self.ajaxCaller.apiPost("api/operations/" + operation,
                 self.getDtoAllSelectedIds(statusId),
                 function (result) {
                     if (callback != null) {
@@ -500,12 +500,12 @@ $(function () {
         postData: viewModel.getDto(),
         mtype: 'POST',
         url: Reviewer.rootPath + "api/operations/searchreturnrecords",
-        colNames: ["Id", "HasAnswers", "BusinessLine", "ClusterName", "LegalEntity", "ProfitCentre", "StructuredEntityName", "TypeOfInterestInEntity", "Status", "UserComments", ""],
+        colNames: ["Id", "HasAnswers", "BusinessLine", "ScenarioName", "LegalEntity", "ProfitCentre", "StructuredEntityName", "TypeOfInterestInEntity", "Status", "UserComments", ""],
         colModel: [
             { name: "Id", width: 35, align: "center", key: true, index: 'Id', sortable: true, hidden: true },
             { name: "HasAnswers", width: 0, hidden: true },
             { name: "BusinessLine", width: 75, "index": "BusinessLine", sortable: true, align: "center" },
-            { name: "ClusterName", width: 75, "index": "ClusterName", sortable: true, align: "center" },
+            { name: "ScenarioName", width: 75, "index": "ScenarioName", sortable: true, align: "center" },
             { name: "LegalEntity", width: 70, "index": "LegalEntity", sortable: true, align: "center" },
             { name: "ProfitCentre", width: 75, align: "center" },
             { name: "StructuredEntityName", width: 75, align: "center" },

@@ -211,9 +211,9 @@ namespace Reviewer.Web.Mvc.Controllers.MVC
                 DataForExcel.DataType.String, DataForExcel.DataType.String
             };
 
-            string[] headerLabels = {"Id", "ClusterName", "UserEmail", "UserName"};
+            string[] headerLabels = {"Id", "ScenarioName", "UserEmail", "UserName"};
 
-            return new ExcelResult(headerLabels, colunmTypes, data, "ClusterApprovers.xlsx", "ClusterApprovers");
+            return new ExcelResult(headerLabels, colunmTypes, data, "ScenarioApprovers.xlsx", "ScenarioApprovers");
         }
 
         public class ExcelResult : ActionResult

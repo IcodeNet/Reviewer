@@ -8,7 +8,7 @@ window.Reviewer = window.Reviewer || {};
         /// </signature>
 
         var self = this;
-        self.viewModelHelper = new Reviewer.ViewModelHelper();
+        self.ajaxCaller = new Reviewer.AjaxCaller();
 
         self.interestTypes = ko.observable([{ 'Name': 'Interest Full', 'Id': '2' }, { 'Id': '3', 'Name': 'Limited' }, { 'Id': '4', 'Name': 'Sponsor' }, { Id: 1, 'Name': 'Trusts & Funds' }]);
         self.uploadTypes = ko.observableArray();
@@ -23,7 +23,7 @@ window.Reviewer = window.Reviewer || {};
         self.isCommandRunning = ko.observable(false);
 
         self.loadAvailableUploadTypes = function (model) {
-            self.viewModelHelper.apiGet('api/resources/uploadtypes',
+            self.ajaxCaller.apiGet('api/resources/uploadtypes',
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.uploadTypes);
@@ -31,7 +31,7 @@ window.Reviewer = window.Reviewer || {};
         };
 
         self.loadAvailableFileNames = function (model) {
-            self.viewModelHelper.apiGet('api/resources/exceptionfilenames',
+            self.ajaxCaller.apiGet('api/resources/exceptionfilenames',
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.fileNames);
@@ -71,7 +71,7 @@ window.Reviewer = window.Reviewer || {};
                 "extendedTimeOut": "0"
             };
 
-            self.viewModelHelper.apiPost('api/operations/searchmanagementrecords',
+            self.ajaxCaller.apiPost('api/operations/searchmanagementrecords',
                 self.getDtoForManagementReport(), function (result) {
                 
                     function createColModelArray(namesArray) {

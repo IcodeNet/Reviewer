@@ -31,7 +31,7 @@
                     <div class="col-md-10">
                         <select id="zoneSel" data-placeholder="Select Zone" data-bind="chosen: { chosenOption: { allow_single_deselect: true }, source: zones, valueProp: 'Name', selectedValue: selectedZone, displayProp: 'Name' }"></select>
                         &nbsp;
-                        <button data-bind="enable: shouldEnableSearch(), click: search" class="btn btn-primary">Search  &nbsp;<span class=" glyphicon glyphicon-search"></span></button>
+                        <button data-bind="enable: shouldEnableSearch, click: search" class="btn btn-primary">Search  &nbsp;<span class=" glyphicon glyphicon-search"></span></button>
 
                     </div>
                 </div>

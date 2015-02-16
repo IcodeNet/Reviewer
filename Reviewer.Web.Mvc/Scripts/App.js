@@ -7,7 +7,7 @@
 
 
 (function (ns) {
-    var viewModelHelper = function () {
+    var httpService = function () {
         var self = this;
 
         self.modelIsValid = ko.observable(true);
@@ -120,7 +120,7 @@
 
     };
 
-    ns.ViewModelHelper = viewModelHelper;
+    ns.AjaxCaller = httpService;
 
 }(window.Reviewer));
 

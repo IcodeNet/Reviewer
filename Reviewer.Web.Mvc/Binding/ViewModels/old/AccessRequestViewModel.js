@@ -7,7 +7,7 @@ window.Reviewer = window.Reviewer || {};
 
         var self = this;
 
-        self.viewModelHelper = new Reviewer.ViewModelHelper();
+        self.ajaxCaller = new Reviewer.AjaxCaller();
         self.viewMode = ko.observable('request'); //'request', 'response'
         self.accessRequestModel = new Reviewer.AccessRequestModel();
         self.zones = ko.observableArray();
@@ -16,28 +16,28 @@ window.Reviewer = window.Reviewer || {};
 
         self.isCommandRunning = ko.observable(false);
 
-        self.availableClusters = function (model) {
-            self.viewModelHelper.apiGet('api/resources/getallclusters',
+        self.availableScenarios = function (model) {
+            self.ajaxCaller.apiGet('api/resources/getallScenarios',
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.zones);
                     self.viewMode('request');
-                    // toastr.info("Loaded " + result.length, "Clusters");
+                    // toastr.info("Loaded " + result.length, "Scenarios");
                 });
         };
 
         self.selectedZone.subscribe(function (newValue) {
-            self.accessRequestModel.ClusterId = newValue;
+            self.accessRequestModel.ScenarioId = newValue;
 
             if (newValue == undefined) {
                 self.isValid(false);
-              //  self.viewModelHelper.modelIsValid(false);
+              //  self.ajaxCaller.modelIsValid(false);
                 return;
             }
 
             var errors = ko.validation.group(self, { deep: true });
             if (errors().length == 0) {
-               // self.viewModelHelper.modelIsValid(true);
+               // self.ajaxCaller.modelIsValid(true);
             }
         });
 
@@ -45,15 +45,15 @@ window.Reviewer = window.Reviewer || {};
         self.sendRequest = ko.command(
              function (model) {
                  var errors = ko.validation.group(model, { deep: true });
-                 self.viewModelHelper.modelIsValid(model.isValid());
+                 self.ajaxCaller.modelIsValid(model.isValid());
 
                  if (errors().length == 0) {
                      self.isCommandRunning(true);
-                     var dto = { ClusterId: self.selectedZone() };
-                     self.viewModelHelper.apiPost("api/operations/accessrequest",
+                     var dto = { ScenarioId: self.selectedZone() };
+                     self.ajaxCaller.apiPost("api/operations/accessrequest",
                          dto,
                          function (result) {
-                             self.accessRequestReferenceNumber(result.ClusterId);
+                             self.accessRequestReferenceNumber(result.ScenarioId);
                              self.viewMode('response');
                              toastr.success("Success! ", "Operation Result");
                          },
@@ -65,7 +65,7 @@ window.Reviewer = window.Reviewer || {};
                          }
                      );
                  } else {
-                    // self.viewModelHelper.modelErrors(errors());
+                    // self.ajaxCaller.modelErrors(errors());
                  }
              }
         );

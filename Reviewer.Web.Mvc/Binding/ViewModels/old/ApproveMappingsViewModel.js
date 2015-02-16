@@ -8,7 +8,8 @@ window.Reviewer = window.Reviewer || {};
         var self = this;
 
         //properties
-        self.viewModelHelper = new ns.ViewModelHelper();
+        self.ajaxCaller = new ns.AjaxCaller();
+
         self.isCommandRunning = ko.observable(false);
         self.elements = ko.observableArray();
         self.elementsEdited = ko.observableArray();
@@ -28,7 +29,7 @@ window.Reviewer = window.Reviewer || {};
         self.disclosureTypes = ko.observableArray();
         self.disclosureTypesALL = ko.observableArray();
         self.selectedDisclosureType = ko.observable();
-        self.previousStructuredEntityId = ko.observable();
+        self.selectedRowsIds = ko.observableArray([]);
 
         //subscriptions
         self.selectedZone.subscribe(function (newvalue) {
@@ -52,8 +53,19 @@ window.Reviewer = window.Reviewer || {};
             // self.selectedDisclosureType();
         });
 
-
         //methods
+
+        self.shouldEnableApprove = function () {
+            var shouldEnableButton = (self.selectedRowsIds() !== undefined &&
+                self.selectedRowsIds().length > 0);
+
+            return shouldEnableButton;
+        };
+
+        self.shouldEnableApproveAll = function () {
+            return true;
+        };
+
         self.shouldEnableSearch = function () {
             var shouldEnableButton = (self.selectedZone() !== undefined &&
                 self.selectedCategory() !== undefined);
@@ -71,11 +83,10 @@ window.Reviewer = window.Reviewer || {};
 
         self.loadAvailableZones = function (model) {
             self.isCommandRunning(true);
-            self.viewModelHelper.apiGet('api/resources/clusters',
+            self.ajaxCaller.apiGet('api/resources/Scenarios',
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.zones);
-                    // toastr.info("Loaded " + result.length, "Clusters");
                 }, function (error) {
                     toastr.error(error.responseText, "Operation Result");
                 },
@@ -83,8 +94,6 @@ window.Reviewer = window.Reviewer || {};
                     self.isCommandRunning(false);
                 });
         };
-
-
 
         self.loadAvailableCategories = function (model) {
 
@@ -95,8 +104,7 @@ window.Reviewer = window.Reviewer || {};
             if (self.selectedZone() == undefined) { return; }
             self.isCommandRunning(true);
 
-
-            self.viewModelHelper.apiGet('api/resources/businesslinesjson?forCluster=' + encodeURIComponent(self.selectedZone()),
+            self.ajaxCaller.apiGet('api/resources/businesslinesjson?forScenario=' + encodeURIComponent(self.selectedZone()),
                 null,
                 function (result) {
                     var mappedEntities = $.map(result, function (item) { return new BusinessLine(item); });
@@ -118,7 +126,7 @@ window.Reviewer = window.Reviewer || {};
                 this.Name = ko.observable(data);
             }
 
-            self.viewModelHelper.apiGet('api/resources/legalentitiesjson?forBusinessLine=' + encodeURIComponent(self.selectedCategory()),
+            self.ajaxCaller.apiGet('api/resources/legalentitiesjson?forBusinessLine=' + encodeURIComponent(self.selectedCategory()),
                 null,
                 function (result) {
                     var mappedEntities = $.map(result, function (item) { return new LegalEntity(item); });
@@ -133,27 +141,24 @@ window.Reviewer = window.Reviewer || {};
         };
 
         self.loadAvailableProfitCentres = function (model) {
-            self.viewModelHelper.apiGet('api/resources/profitcentres?forLegalEntity=' + encodeURIComponent(self.selectedLegalEntity()),
+            self.ajaxCaller.apiGet('api/resources/profitcentres?forLegalEntity=' + encodeURIComponent(self.selectedLegalEntity()),
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.profitCentres);
-                    // toastr.info("Loaded " + result.length, "Profit Centres");
                 });
         };
 
         self.loadAvailableStructuredEntities = function (model) {
-            self.viewModelHelper.apiGet('api/resources/structuredentities?forProfitCentre=' + encodeURIComponent(self.selectedProfitCentre()),
+            self.ajaxCaller.apiGet('api/resources/structuredentities?forProfitCentre=' + encodeURIComponent(self.selectedProfitCentre()),
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.structuredEntities);
-                    // toastr.info("Loaded " + result.length, "Structured Entities");
                 });
         };
 
 
         self.loadALLStructuredEntities = function (model) {
-            self.isCommandRunning(true);
-            self.viewModelHelper.apiGet('api/resources/structuredentities',
+            self.ajaxCaller.apiGet('api/resources/structuredentities',
                 null,
                 function (result) {
 
@@ -170,27 +175,25 @@ window.Reviewer = window.Reviewer || {};
         self.loadAvailableDisclosureTypes = function (model) {
             var url = 'api/resources/disclosuretypes?forProfitCentre=' + encodeURIComponent(self.selectedProfitCentre()) + '&forStructureEntity=' + encodeURIComponent(self.selectedStructuredEntity());
 
-            self.viewModelHelper.apiGet(url,
+            self.ajaxCaller.apiGet(url,
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.disclosureTypes);
                 });
         };
 
-
         self.loadAllDisclosureTypes = function (model) {
             var url = 'api/resources/disclosuretypes';
 
-            self.viewModelHelper.apiGet(url,
+            self.ajaxCaller.apiGet(url,
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.disclosureTypesALL);
                 });
         };
 
-
-        self.loadClusterReturnRecords = function (model) {
-            self.viewModelHelper.apiGet('api/resources/returnrecords',
+        self.loadScenarioReturnRecords = function (model) {
+            self.ajaxCaller.apiGet('api/resources/returnrecords',
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.elements);
@@ -199,11 +202,10 @@ window.Reviewer = window.Reviewer || {};
                 });
         };
 
-
         self.getDto = function () {
             return {
                 FilterKeyValues: [
-                    { key: "Cluster", value: self.selectedZone() },
+                    { key: "Scenario", value: self.selectedZone() },
                     { key: "BusinessLine", value: self.selectedCategory() },
                     { key: "LegalEntity", value: self.selectedLegalEntity() },
                     { key: "ProfitCentre", value: self.selectedProfitCentre() },
@@ -213,19 +215,59 @@ window.Reviewer = window.Reviewer || {};
             };
         };
 
+
+        self.getMultiplePostDto = function () {
+
+            var arrayOfMappingsToApprove = [];
+
+            for (var i = 0; i < self.selectedRowsIds().length; i++) {
+
+                var selectedRowId = self.selectedRowsIds()[i];
+
+                $("#grid").jqGrid('saveRow', selectedRowId);
+                var rowData = $("#grid").getRowData(selectedRowId);
+
+                var mapping = {};
+
+                var profitCentreId = rowData.ProfitCentreId;
+                var structuredEntityId = rowData.StructuredEntityId;
+                var disclosureTypeId = rowData.DisclosureTypeId;
+                var questionnaireID = rowData.QuestionnaireID;
+
+                var parsedProfitCentreId = parseInt(rowData.ProfitCentreId);
+                if (isNaN(parsedProfitCentreId)) {
+                    // when the editable field of the column is set to true, the *value* of the cell changes to html, because it's now editable.
+                    // so  rowData.ProfitCentreId its the input control because the row is in edit mode
+                    // just restore the row.
+
+                    $("#grid").jqGrid('restoreRow', selectedRowId);
+                }
+
+                mapping['ProfitCentreId'] = profitCentreId;
+                mapping['StructuredEntityId'] = structuredEntityId;
+                mapping['DisclosureTypeId'] = disclosureTypeId;
+                mapping['QuestionnaireID'] = questionnaireID;
+                mapping['Approved'] = true;
+
+                arrayOfMappingsToApprove.push(mapping);
+            }
+
+            return {
+                'MappingDtos': arrayOfMappingsToApprove
+
+            };
+        };
+
         self.search = function () {
             self.isCommandRunning(true);
-            //toastr.info(ko.toJSON(self.getDto()));
-            // toastr.info(ko.toJSON(self.selectedZone()));
             self.reload();
             self.isCommandRunning(false);
         };
 
         self.create = function () {
             self.isCommandRunning(true);
-            //toastr.info(ko.toJSON(self.getDto()));
 
-            self.viewModelHelper.apiPost("api/operations/returnrecord",
+            self.ajaxCaller.apiPost("api/operations/returnrecord",
                 self.getDto(),
                 function (result) {
                     toastr.success("Success! ", "Operation Result");
@@ -249,13 +291,55 @@ window.Reviewer = window.Reviewer || {};
 
 
         self.reload = function () {
+            self.myGrid.jqGrid("clearGridData", true);
+            self.myGrid.jqGrid('setGridParam', { postData: self.getDto() }).trigger('reloadGrid');
+        };
 
-            $("#grid").jqGrid('GridUnload');
-          
-            self.loadGrid();
-            $("#grid").jqGrid("clearGridData", true);
+        self.operateOnAllRecordsSelected = function (operation, callback) {
+            self.isCommandRunning(true);
 
-            $("#grid").jqGrid('setGridParam', { postData: self.getDto() }).trigger('reloadGrid');
+            //toastr.info(ko.toJSON(self.getMultiplePostDto()), "Operation Result");
+            self.ajaxCaller.apiPost("api/operations/" + operation,
+                 self.getMultiplePostDto(),
+                function (result) {
+                    if (callback != null) {
+                        callback();
+                    }
+
+                    toastr.success("Records updated !", "Operation Result");
+                    self.reload();
+
+                },
+                function (error) {
+                    toastr.error(error.responseText, "Operation Result");
+                },
+                function () {
+                    self.isCommandRunning(false);
+                }
+            );
+
+            self.isCommandRunning(false);
+        };
+
+
+        self.approveAllRecords = function () {
+            self.isCommandRunning(true);
+
+
+            self.ajaxCaller.apiPost("api/operations/approveallrecords",
+                null,
+                function (result) {
+                    toastr.success("All records were 'Approved' in the Database.", "Operation Result");
+                    self.reload();
+
+                },
+                function (error) {
+                    toastr.error(error.responseText, "Operation Result");
+                },
+                function () {
+                    self.isCommandRunning(false);
+                }
+            );
         };
 
 
@@ -263,7 +347,7 @@ window.Reviewer = window.Reviewer || {};
 
     }; // vm
 
-    ns.AmendMappingsViewModel = vm;
+    ns.ApproveMappingsViewModel = vm;
 
 }(window.Reviewer));
 
@@ -272,10 +356,14 @@ $(function () {
     'use strict';
     $.ajaxSetup({ cache: false });
 
-    var viewModel = new window.Reviewer.AmendMappingsViewModel;
+    var viewModel = new window.Reviewer.ApproveMappingsViewModel;
 
-    // viewModel.loadALLStructuredEntities();
-    viewModel.loadAllDisclosureTypes();
+
+    var notifyListeners = function () {
+        var Ids = $("#grid").jqGrid('getGridParam', 'selarrrow');
+        viewModel.selectedRowsIds(Ids);
+    };
+
 
     ko.applyBindings(viewModel);
 
@@ -353,138 +441,55 @@ $(function () {
 
     };
 
+    /*This event fires when multiselect option is true and you click on the header checkbox. 
+  aRowids array of the selected rows (rowid's). 
+  status - boolean variable determining the status of the header check box - true if checked, false if not checked. 
+  Note that the aRowids alway contain the ids when header checkbox is checked or unchecked.*/
+    var onSelectAllRowsAction = function (aRowids, status) {
+        notifyListeners();
+    };
+
     var onSelectRowAction = function (id) {
-
         var tableGrid = $(this); //$("#grid")
-        var rowData = tableGrid.getRowData(id);
-        tableGrid.jqGrid('restoreRow', id);
-
 
         if (id && id !== lastSel) {
 
+           // $("#jqg_grid_" + lastSel)[0].attr('checked', 'false');
+            
+            // cancel editing of the previous selected row if it was in editing state.
+            // jqGrid hold intern savedRow array inside of jqGrid object,
+            // so it is safe to call restoreRow method with any id parameter
+            // if jqGrid not in editing state
+            cancelEditing();
+
             lastSel = id;
 
-
-            var structureEntityColumnModel = tableGrid.jqGrid('getColProp', 'StructuredEntityName');
-            var disclosureTypesColumnModel = tableGrid.jqGrid('getColProp', 'TypeOfInterestInEntity');
-
-            var structureEntitiesLookups = ko.toJS(viewModel.structuredEntitiesAll);
-            var disclosureTypesLookups = ko.toJS(viewModel.disclosureTypesALL);
-
-            var structureEntitiesKeyValues = '';
-            var disclosureTypesKeyValues = '';
-
-            $.each(structureEntitiesLookups, function (index, element) {
-                structureEntitiesKeyValues += element.Id + ':' + element.Name + ';';
-            });
-
-            $.each(disclosureTypesLookups, function (index, element) {
-                disclosureTypesKeyValues += element.Id + ':' + element.Name + ';';
-            });
-
-            structureEntityColumnModel.edittype = 'text';
-            disclosureTypesColumnModel.edittype = 'select';
-
-            //structureEntityColumnModel.editoptions = { dataUrl: Reviewer.rootPath + "api/resources/structuredentitiesjson", buildSelect: buildSelectFromJson };
-            structureEntityColumnModel.editoptions = { value: [] };
-            disclosureTypesColumnModel.editoptions = { value: disclosureTypesKeyValues.slice(0, -1) };
-
-            structureEntityColumnModel.formatter = 'text';
-            disclosureTypesColumnModel.formatter = 'select';
+            //.jqGrid('editRow',rowid, keys, oneditfunc, successfunc, url, extraparam, aftersavefunc,errorfunc, afterrestorefunc);
 
             var editparameters = {
-                keys: false,
-                oneditfunc: null,
-                successfunc: null,
-                url: Reviewer.rootPath + 'api/operations/searchnotapprovereturnrecords',
-                extraparam: getextraparam(),
-                aftersavefunc: null,
-                errorfunc: null,
-                afterrestorefunc: null,
-                restoreAfterError: true,
-                mtype: "POST"
+                "keys": false,
+                "oneditfunc": null,
+                "successfunc": null,
+
+                "extraparam": {},
+                "aftersavefunc": null,
+                "errorfunc": null,
+                "afterrestorefunc": null,
+                "restoreAfterError": true,
+                "mtype": "POST"
             };
-            
-/*
-            $("#grid").jqGrid('editRow', id, true, null, null, null, {
-                myNextParam: function () {
-                    alert("extraparam of 'editRow' is calling!!!");
-                    return "Fine";
-                }
-            });*/
-            
-            $("#grid").jqGrid('editRow', id, editparameters);
 
-            var previousStructuredEntityId = ("#" + id + "_StructuredEntityId");
-            viewModel.previousStructuredEntityId($(previousStructuredEntityId).val());
-
-
-            var pageSize = 20;
-            var dataUrl = Reviewer.rootPath + "api/resources/senamesjson";
-
-            $("#" + id + "_StructuredEntityName").select2({
-                minimumInputLength: 3,
-                placeholder: 'Search SE',
-                ajax: {
-                    //The url we will send our get request to
-                    url: dataUrl,
-                    dataType: 'json',
-                    quietMillis: 100,
-                    //Our search term and what page we are on
-                    data: function (term, page) {
-                        return {
-                            pageSize: pageSize,
-                            pageNum: page,
-                            limit: -1,
-                            term: term
-                        };
-                    },
-                    results: function (data, page) {
-                        //Used to determine whether or not there are more results available,
-                        //and if requests for more data should be sent in the infinite scrolling
-                        var more = (page * pageSize) < data.Total;
-                        return { results: data.Results, more: more };
-                    }
-                },
-                formatResult: function (select2Result) {
-                    return "<div class='select2-user-result'>" + select2Result.text + "</div>";
-                },
-                formatSelection: function (select2Result) {
-                    var selectedValue = $("#" + id + "_StructuredEntityName").select2("val");
-
-                    // tableGrid.jqGrid('setCell', id, 'StructuredEntityId', selectedValue, "dirty-cell");
-                    tableGrid.jqGrid('setCell', id, 'StructuredEntityName', select2Result.text, "dirty-cell");
-                    $("#" + id + "_StructuredEntityId").val(select2Result.id);
-
-                    //alert(ko.toJSON($('#grid').jqGrid('getRowData', id)));
-
-                    structureEntityColumnModel.editoptions = { value: selectedValue };
-                    return select2Result.text;
-                },
-                initSelection: function (element, callback) {
-                    var elementText = $(element).attr('data-init-text');
-                    callback({ "term": elementText });
-                }
-            });
-
-            $("#" + id + "_TypeOfInterestInEntity").select2({
-                "width": "125"
-            });
+            tableGrid.jqGrid('editRow', id, editparameters);
 
             $("tr#" + lastSel + " div.ui-inline-edit, " + "tr#" + lastSel + " div.ui-inline-del", $('#grid')).hide();
             $("tr#" + lastSel + " div.ui-inline-save, " + "tr#" + lastSel + " div.ui-inline-cancel", $('#grid')).show();
-        }
 
-    };
+            notifyListeners();
+        } else {
 
-    var buildSelectFromJson = function (data) {
-        var html = '<select>', d = eval(data), length = d.length, i = 0, item;
-        for (; i < length; i++) {
-            item = d[i];
-            html += '<option value=' + item + '>' + item + '</option>';
+            cancelEditing();
+            lastSel = -1;
         }
-        html += '</select>';
-        return html;
     };
 
     var beforeSelectRowAction = function (rowid) {
@@ -506,37 +511,6 @@ $(function () {
 
             return false; // allow selection or unselection
         }
-
-
-    };
-
-    var getextraparam = function () {
-        var paramArray = [];
-
-        paramArray.push({
-            "edit": function () {
-                var selectedValue = $("#" + id + "_StructuredEntityName").select2("val");
-                alert(selectedValue);
-                return selectedValue;
-            }
-        });
-
-        return { ajax: "1" };
-    };
-
-    var getEditparameters = function () {
-        return {
-            keys: false,
-            oneditfunc: null,
-            successfunc: null,
-            url: Reviewer.rootPath + 'api/operations/searchnotapprovereturnrecords',
-            extraparam: { "name": "value" },
-            aftersavefunc: null,
-            errorfunc: null,
-            afterrestorefunc: null,
-            restoreAfterError: true,
-            mtype: "POST"
-        };
     };
 
     var loadCompleteAction = function () {
@@ -549,77 +523,94 @@ $(function () {
         arrayOfIds.forEach(function (id) {
             var rowData = jqgrid.getRowData(id);
 
-            if (rowData.HasAnswers == "True" || rowData.Approved == 'True') {
-                $(grid.rows.namedItem(id)).addClass('ui-state-disabled');
-
-                var editDivs = $(grid.rows.namedItem(id)).find("td:nth-child(" + (iCol + 1) + ")").find("div");
-                $(editDivs[0]).html('<span title="Has answers or is Approved so it cannot be edited." class="ui-icon ui-icon-cancel"></span>');
+            if (rowData.HasAnswers == "True") {
+                disablePencilIcon(iCol, id);
             }
 
+            if (rowData.Approved == "True") {
+                disablePencilIcon(iCol, id);
+            }
         });
     };
 
-    var myGrid;
+    var disablePencilIcon = function (iCol, id) {
+        $(grid.rows.namedItem(id)).addClass('ui-state-disabled');
 
-    function loadGrid() {
-
-        myGrid = $("#grid").jqGrid({
-            datatype: 'json',
-            postData: viewModel.getDto(),
-            mtype: 'POST',
-            url: Reviewer.rootPath + "api/operations/searchnotapprovereturnrecords",
-            colNames: ["Id", "HasAnswers", "BL", "Cluster", "LE", "PC Code", "PC", "StructuredEntityId", "SE",  "Disclosure", "Status", "UserComments", "Approved", "PreviousStructuredEntityId", "ProfitCentreId", ""],
-            colModel: [
-                { name: "Id", width: 55, align: "center", key: true, hidden: true },
-                { name: "HasAnswers", width: 0, hidden: true },
-                { name: "BusinessLine", width: 95, align: "center", "index": "BusinessLine", sortable: true },
-                { name: "ClusterName", width: 85, "index": "ClusterName", sortable: true, align: "right" },
-                { name: "LegalEntity", width: 85, "index": "LegalEntity", sortable: true, align: "center" },
-                { name: "ProfitCentreCode", width: 50, align: "center", "index": "ProfitCentreCode", sortable: true },
-                { name: "ProfitCentre", width: 100, align: "right", "index": "ProfitCentre", sortable: true },
-                { name: "StructuredEntityId", hidden: true, width: 1, editable: true, editrules: { edithidden: true }, hidedlg: true },
-                { name: "StructuredEntityName", width: 135, editable: true, cellattr: cellattr, align: "center", "index": "StructuredEntityID", sortable: false },
-                { name: "TypeOfInterestInEntity", width: 135, editable: true, cellattr: cellattr, align: "center", "index": "TypeOfInterestInEntity", sortable: true },
-                { name: "Status", hidden: true },
-                { name: "UserComments", hidden: true },
-                { name: "Approved", hidden: true },
-                { name: "PreviousStructuredEntityId", hidden: true,  editable: true, editrules: { edithidden: true }, hidedlg: true },
-                { name: "ProfitCentreId", hidden: true, editable: true, editrules: { edithidden: true }, hidedlg: true },
-                { name: 'act', index: 'act', sortable: false, width: 65, editable: false, formatter: 'actions', formatoptions: { keys: true, editbutton: true, delbutton: false } }
-            ],
-
-            pager: "#pager",
-            rowNum: 5,
-            rowList: [5, 10, 20, 30, 100],
-            sortname: "Id",
-            sortorder: "asc",
-            viewrecords: true,
-            save: true,
-            gridview: true,
-            autoencode: true,
-            caption: "&nbsp; Return records",
-            autowidth: true,
-            shrinktofit: false,
-            editurl: Reviewer.rootPath + 'api/operations/searchnotapprovereturnrecords',
-            editOptions: getEditparameters,
-            height: "100%",
-            jsonReader: { repeatitems: true },
-            /*  ondblClickRow: ondblClickRow,*/
-            /*  beforeSelectRow: beforeSelectRowAction, */
-            onSelectRow: onSelectRowAction,
-            aftersavefunc: function (rowID, response) {
-                cancelEditing($('#grid'));
-            },
-            loadComplete: loadCompleteAction
-        });
-
-        $("#grid").jqGrid('navGrid', "#pager", { "edit": false, "add": false, "del": false, "search": false, "refresh": true, "view": false, "position": "left", "cloneToTop": true });
-
+        var editDivs = $(grid.rows.namedItem(id)).find("td:nth-child(" + (iCol + 1) + ")").find("div");
+        $(editDivs[0]).html('<span title="Is Already Approved." class="ui-icon ui-icon-cancel"></span>');
     };
 
-    loadGrid();
+    $.extend($.jgrid.defaults, {
+        ajaxRowOptions: {
+            success: function (e) {
+                var iCol = getColumnIndexByName(myGrid, 'act');
+                disablePencilIcon(iCol, lastSel);
+            }
+        }
+    });
 
-    viewModel.loadGrid = loadGrid;
+    var myGrid = $("#grid").jqGrid({
+        datatype: 'json',
+        postData: viewModel.getDto(),
+        mtype: 'POST',
+        url: Reviewer.rootPath + "api/operations/searchmappings",
+        colNames: ["QuestionnaireID", "PC Id", "PC Code", "SE ID", "SE Id", "DT Id", "Has Answers", "BL", "Scenario", "LE", "PCentre", "SE", "Disclosure", "Status", "UserComments", "Approved", ""],
+        colModel: [
+            { name: "QuestionnaireID", key: true, index: 'QuestionnaireID', hidden: true, editable: true, editrules: { edithidden: false }, hidedlg: true },
+            { name: "ProfitCentreId", hidden: true, editable: true, editrules: { edithidden: false }, hidedlg: true },
+            { name: "ProfitCentreCode", width: 70, "index": "ProfitCentreCode", sortable: true, align: "center" },
+            { name: "StructuredEntityId", key: true, hidden: true, editable: true, editrules: { edithidden: false }, hidedlg: true },
+            { name: "DisclosureTypeId", hidden: true, editable: true, editrules: { edithidden: false }, hidedlg: true },
+            { name: "HasAnswers", width: 0, hidden: true },
+            { name: "BusinessLine", sortable: false, width: 80, "index": "BusinessLine", align: "center" },
+            { name: "ScenarioName", width: 80, "index": "ScenarioName", align: "right" },
+            { name: "LegalEntity", width: 70, "index": "LegalEntity", align: "center", sortable: true },
+            { name: "ProfitCentre", hidden: true, width: 80, align: "right" },
+            { name: "StructuredEntityName", width: 80, editable: false, cellattr: cellattr, align: "center", "index": "StructuredEntityName", sortable: true },
+            { name: "TypeOfInterestInEntity", width: 80, editable: false, cellattr: cellattr, align: "center", "index": "TypeOfInterestInEntity", sortable: true },
+            { name: "Status", width: 0, hidden: true },
+            { name: "UserComments", width: 0, hidden: true },
+            { name: "Approved", width: 65, editable: true, cellattr: cellattr, align: "center", "index": "Approved", sortable: true, edittype: "checkbox", editoptions: { value: "True:False" } },
+            { name: 'act', index: 'act', sortable: false, width: 65, editable: false, formatter: 'actions', formatoptions: { keys: true, editbutton: true, delbutton: false } }
+        ],
+        multiselect: true,
+        pager: "#pager",
+        rowNum: 5,
+        rowList: [5, 10, 20, 30, 100],
+        sortname: "Id",
+        sortorder: "asc",
+        viewrecords: true,
+        save: true,
+        gridview: true,
+        autoencode: true,
+        caption: "&nbsp; Return records",
+        autowidth: true,
+        shrinktofit: false,
+
+        editurl: Reviewer.rootPath + 'api/operations/approvemmapings',
+        height: "100%",
+        jsonReader: { repeatitems: true },
+        /*  ondblClickRow: ondblClickRow,*/
+        /*  beforeSelectRow: beforeSelectRowAction, */
+        onSelectRow: onSelectRowAction,
+        onSelectAll: onSelectAllRowsAction,
+        loadComplete: loadCompleteAction
+    });
+
+
+    $("#grid").jqGrid('navGrid', "#pager", { "edit": false, "add": false, "del": false, "search": false, "refresh": true, "view": false, "position": "left", "cloneToTop": true });
+
+    $("#approveSelectedBtn").click(function () {
+        viewModel.operateOnAllRecordsSelected('approvemultiplemmapings');
+
+    });
+
+    $("#approveAllBtn").click(function () {
+        $("#approveAllBtn").attr('disabled', 'true');
+        viewModel.approveAllRecords();
+
+    });
+
     viewModel.myGrid = myGrid;
 
     function cancelEditing() {
@@ -631,7 +622,6 @@ $(function () {
             $("tr#" + lastSel + " div.ui-inline-save, " + "tr#" + lastSel + " div.ui-inline-cancel", "#grid").hide();
         }
     };
-
 
     function startEditing() {
         if (typeof lastSel !== "undefined") {

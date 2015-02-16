@@ -1,13 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
-<bundle minify="true" runOnBuild="true" output="KnockOutBundle.js">
-  <!--The order of the <file> elements determines the order of them when bundled.-->
-  <file>/Scripts/Knockout/knockout-2.3.0.js</file>
-  <file>/Scripts/Knockout/knockout.binding-conventions-1.0.68.0.min.js</file>
-  <file>/Scripts/Knockout/knockout.bootstrap-1.0.7.0.js</file>
-  <file>/Scripts/Knockout/knockout.mapping-latest.js</file>
-  <file>/Scripts/Knockout/knockout.validation.js</file>
-  <file>/Scripts/Knockout/Knockout-Custom.min.js</file>
-  <file>/Scripts/Knockout/ko.plus.min.js</file>
-  <file>/Scripts/Knockout/binding-dump.min.js</file>
-  <file>/Scripts/Knockout/cb-ko-binding-chosen.min.js</file>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<bundle xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://vswebessentials.com/schemas/v1/bundle.xsd">
+  <settings>
+    <!--Determines if the bundle file should be automatically optimized after creation/update.-->
+    <minify>true</minify>
+    <!--Determine whether to generate/re-generate this bundle on building the solution.-->
+    <runOnBuild>true</runOnBuild>
+    <!--Specifies a custom subfolder to save files to. By default, compiled output will be placed in the same folder and nested under the original file.-->
+    <outputDirectory />
+  </settings>
+  <!--The order of the <file> elements determines the order of the files in the bundle.-->
+  <files>
+    <file>/Scripts/Knockout/knockout-2.3.0.js</file>
+    <file>/Scripts/Knockout/knockout.binding-conventions-1.0.68.0.min.js</file>
+    <file>/Scripts/Knockout/knockout.bootstrap-1.0.7.0.js</file>
+    <file>/Scripts/Knockout/knockout.mapping-latest.js</file>
+    <file>/Scripts/Knockout/knockout.validation.js</file>
+    <file>/Scripts/Knockout/Knockout-Custom.min.js</file>
+    <file>/Scripts/Knockout/ko.plus.min.js</file>
+    <file>/Scripts/Knockout/binding-dump.min.js</file>
+    <file>/Scripts/Knockout/cb-ko-binding-chosen.min.js</file>
+  </files>
 </bundle>

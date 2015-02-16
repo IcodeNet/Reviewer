@@ -11,7 +11,7 @@ window.Reviewer = window.Reviewer || {};
         var self = this;
 
         //properties
-        self.viewModelHelper = new ns.ViewModelHelper();
+        self.ajaxCaller = new ns.AjaxCaller();
         self.model = ns.PrepareReturnsModel;
         self.isCommandRunning = ko.observable(false);
         self.questions = ko.observableArray();
@@ -22,7 +22,7 @@ window.Reviewer = window.Reviewer || {};
         //methods
         self.loadQuestions = function (model) {
             self.isCommandRunning(true);
-            self.viewModelHelper.apiGet('api/resources/questionrecords?questionnaireId=' + self.getParameterByName('id'),
+            self.ajaxCaller.apiGet('api/resources/questionrecords?questionnaireId=' + self.getParameterByName('id'),
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.questionaireViewModel);
@@ -94,7 +94,7 @@ window.Reviewer = window.Reviewer || {};
 
             self.disableButtons();
 
-            self.viewModelHelper.apiPost("api/operations/approveinsignoff",
+            self.ajaxCaller.apiPost("api/operations/approveinsignoff",
                 self.getDto(),
                 function (result) {
                     toastr.success("Completed/Signed Off! ", "Operation Result");
@@ -136,7 +136,7 @@ window.Reviewer = window.Reviewer || {};
         self.postChanges = function () {
             self.isCommandRunning(true);
 
-            self.viewModelHelper.apiPost("api/operations/rejectinsignoff",
+            self.ajaxCaller.apiPost("api/operations/rejectinsignoff",
                 self.getDto(),
                 function (result) {
                     toastr.success("Rejected! ", "Operation Result");
@@ -256,7 +256,7 @@ window.Reviewer = window.Reviewer || {};
 
                             self.isCommandRunning(true);
 
-                            self.viewModelHelper.apiPost("api/operations/questions",
+                            self.ajaxCaller.apiPost("api/operations/questions",
                             dto,
                             function (result) {
                                 toastr.success("Success! ", "Operation Result");

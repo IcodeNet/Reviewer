@@ -2,7 +2,7 @@
     var AccessRequestModel = function () {
 
         var self = this;
-        self.ClusterId = ko.observable("");
+        self.ScenarioId = ko.observable("");
     };
 
     ns.AccessRequestModel = AccessRequestModel;

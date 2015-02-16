@@ -5,117 +5,128 @@ window.Reviewer = window.Reviewer || {};
 (function (ns) {
 
 
-    var vm = function () {
-        var self = this;
+    var scenariaViewModel = function () {
 
-        //properties
-        self.viewModelHelper = new ns.ViewModelHelper();
+        var vm = this;
 
-        self.isCommandRunning = ko.observable(false);
-        self.elements = ko.observableArray();
-        self.elementsEdited = ko.observableArray();
-        self.elementsPaged = ko.observableArray();
-        self.originalElments = null;
+        //*************************************
+        // implemenations
+
+        vm.getDto = function () {
+            return {
+                FilterKeyValues: [
+                    { key: "Zone", value: vm.selectedZone() },
+                    { key: "Category", value: vm.selectedCategory() }
+                ]
+            };
+        };
 
 
-        self.zones = ko.observableArray();
-        self.selectedZone = ko.observable();
+        var reload = function () {
+            vm.myGrid.jqGrid('setGridParam', { postData: vm.getDto() }).trigger('reloadGrid');
+        };
 
 
-        self.categories = ko.observableArray();
-        self.selectedCategory = ko.observable();
-       
-        //subscriptions
-        self.selectedZone.subscribe(function (newvalue) {
-            self.loadAvailableCategories(self, { insertmessages: false });
-        });
+        var search = function () {
+            vm.isCommandRunning(true);
+            //toastr.info(ko.toJSON(self.getDto()));
+            // toastr.info(ko.toJSON(self.selectedZone()));
+            vm.reload();
+            vm.isCommandRunning(false);
+        };
 
-        self.selectedCategory.subscribe(function (newvalue) {
 
-        });
-
-      
-
-        //methods
-        self.shouldEnableSearch = function () {
-            var shouldEnableButton = (self.selectedZone() !== undefined &&
-                self.selectedCategory() !== undefined);
+        var shouldEnableSearch = function () {
+            var shouldEnableButton = (vm.selectedZone() !== undefined &&
+                vm.selectedCategory() !== undefined);
             return shouldEnableButton;
         };
 
-        self.shouldEnableCreate = function () {
-            return (self.selectedZone() !== undefined &&
-                self.selectedCategory() !== undefined );
+        var shouldEnableCreate = function () {
+            return (vm.selectedZone() !== undefined &&
+                vm.selectedCategory() !== undefined);
         };
 
-        self.loadAvailableZones= function (model) {
-            self.isCommandRunning(true);
-            self.viewModelHelper.apiGet('api/resources/zones',
-                null,
-                function (result) {
-                    ko.mapping.fromJS(result, {}, self.zones);
-                    toastr.info("Loaded " + result.length, "Zones");
-                }, function (error) {
-                    toastr.error(error.responseText, "Operation Result");
-                },
-                function () {
-                    self.isCommandRunning(false);
-                });
-        };
-
-        self.loadAvailableCategories = function (model) {
+        var loadAvailableCategories = function (model) {
 
             function Category(data) {
                 this.Name = ko.observable(data);
             }
 
-            if (self.selectedZone() == undefined) { return; }
-            self.isCommandRunning(true);
+            if (vm.selectedZone() == undefined) {
+                return;
+            }
+            vm.isCommandRunning(true);
 
 
-            self.viewModelHelper.apiGet('api/resources/categoriesjson?forZone=' + encodeURIComponent(self.selectedZone()),
+            vm.ajaxCaller.apiGet('api/resources/categoriesjson?forZone=' + encodeURIComponent(vm.selectedZone()),
                 null,
                 function (result) {
                     var mappedEntities = $.map(result, function (item) { return new Category(item); });
-                    self.categories(mappedEntities);
+                    vm.categories(mappedEntities);
 
                 }, function (error) {
                     toastr.error(error.responseText, "Operation Result");
                 },
                 function () {
-                    self.isCommandRunning(false);
+                    vm.isCommandRunning(false);
+                });
+        };
+
+        var loadAvailableZones = function (model) {
+            vm.isCommandRunning(true);
+            vm.ajaxCaller.apiGet('api/resources/zones',
+                null,
+                function (result) {
+                    ko.mapping.fromJS(result, {}, vm.zones);
+                    toastr.info("Loaded " + result.length, "Zones");
+                }, function (error) {
+                    toastr.error(error.responseText, "Operation Result");
+                },
+                function () {
+                    vm.isCommandRunning(false);
                 });
         };
 
 
-        self.getDto = function () {
-            return {
-                FilterKeyValues: [
-                    { key: "Zone", value: self.selectedZone() },
-                    { key: "Category", value: self.selectedCategory() }
-                ]
-            };
-        };
+        // INTERFACE
+        //properties
+        vm.ajaxCaller = new ns.AjaxCaller();
 
-        self.search = function () {
-            self.isCommandRunning(true);
-            //toastr.info(ko.toJSON(self.getDto()));
-            // toastr.info(ko.toJSON(self.selectedZone()));
-            self.reload();
-            self.isCommandRunning(false);
-        };
+        vm.isCommandRunning = ko.observable(false);
 
-      
-        self.reload = function () {
-            self.myGrid.jqGrid('setGridParam', { postData: self.getDto() }).trigger('reloadGrid');
-        };
+        vm.zones = ko.observableArray();
+        vm.selectedZone = ko.observable();
+
+        vm.categories = ko.observableArray();
+        vm.selectedCategory = ko.observable();
+
+        //methods
+        vm.shouldEnableSearch = shouldEnableSearch;
+        vm.shouldEnableCreate = shouldEnableCreate;
+
+        vm.loadAvailableZones = loadAvailableZones;
+        vm.loadAvailableCategories = loadAvailableCategories;
+        vm.search = search;
+        vm.reload = reload;
 
 
-        self.loadAvailableZones(self, { insertmessages: false });
+
+        //subscriptions
+        vm.selectedZone.subscribe(function (newvalue) {
+            vm.loadAvailableCategories(vm, { insertmessages: false });
+        });
+
+        vm.selectedCategory.subscribe(function (newvalue) {
+
+        });
+
+        // init 
+        loadAvailableZones(vm, { insertmessages: false });
 
     }; // vm
 
-    ns.ScenariaViewModel = vm;
+    ns.ScenariaViewModel = scenariaViewModel;
 
 }(window.Reviewer));
 
@@ -125,6 +136,7 @@ $(function () {
 
     var viewModel = new window.Reviewer.ScenariaViewModel;
     ko.applyBindings(viewModel);
+
 
     var lastSel;
 
@@ -138,16 +150,24 @@ $(function () {
         return -1;
     };
 
-    var cellattr = function (rowId, val, rawObject) {
+    function cancelEditing() {
+        if (typeof lastSel !== "undefined") {
 
-        if (val == 'Rejected in Review' || val == 'Rejected in Signoff') {
-            return " class='rejected'";
+            $('#grid').jqGrid('restoreRow', lastSel);
+
+            $("tr#" + lastSel + " div.ui-inline-edit, " + "tr#" + lastSel + " div.ui-inline-del", "#grid").show();
+            $("tr#" + lastSel + " div.ui-inline-save, " + "tr#" + lastSel + " div.ui-inline-cancel", "#grid").hide();
         }
-        if (val == 'Reviewed' || (val == 'Completed/Signed Off')) {
-            return " class='approved'";
-        }
-        return "";
     };
+
+
+    function startEditing() {
+        if (typeof lastSel !== "undefined") {
+            $("tr#" + lastSel + " div.ui-inline-edit, " + "tr#" + lastSel + " div.ui-inline-del", "#grid").hide();
+            $("tr#" + lastSel + " div.ui-inline-save, " + "tr#" + lastSel + " div.ui-inline-cancel", "#grid").show();
+        }
+    };
+
 
     var loadCompleteAction = function () {
         var iCol = getColumnIndexByName(myGrid, 'act');
@@ -164,7 +184,6 @@ $(function () {
 
                 var editDivs = $(grid.rows.namedItem(id)).find("td:nth-child(" + (iCol + 1) + ")").find("div");
                 $(editDivs[0]).html('<span title="' + rowData.UserComments + '" class="ui-icon ui-icon-comment"></span>');
-
 
 
             }
@@ -189,35 +208,14 @@ $(function () {
                         viewModel.viewRecord(id);
                     }
                 }
-              ).css({ "margin-right": "5px", float: "left", cursor: "pointer" })
-               .addClass("ui-pg-div ui-inline-custom")
-               .append('<span class="ui-icon ui-icon-document"></span>')
-               .prependTo($(this).children("div"));
+                    ).css({ "margin-right": "5px", float: "left", cursor: "pointer" })
+                    .addClass("ui-pg-div ui-inline-custom")
+                    .append('<span class="ui-icon ui-icon-document"></span>')
+                    .prependTo($(this).children("div"));
             });
 
-    };
-    var ondblClickRowAction = function (id, ri, ci) {
-        // edit the row and save it on press "enter" key
+    }; //loadCompleteAction
 
-        $("#grid").jqGrid('editRow', id,
-            {
-                keys: true,
-                successfunc: function () {
-                    cancelEditing();
-                },
-                afterrestorefunc: function () {
-
-                    $("tr#" + lastSel + " div.ui-inline-edit, " + "tr#" + lastSel + " div.ui-inline-del", "#grid").show();
-                    $("tr#" + lastSel + " div.ui-inline-save, " + "tr#" + lastSel + " div.ui-inline-cancel", "#grid").hide();
-                }
-            });
-
-        $("#" + id + "_Status").focus();
-
-        $("tr#" + lastSel + " div.ui-inline-edit, " + "tr#" + lastSel + " div.ui-inline-del", "#grid").hide();
-        $("tr#" + lastSel + " div.ui-inline-save, " + "tr#" + lastSel + " div.ui-inline-cancel", "#grid").show();
-
-    };
     var onSelectRowAction = function (id) {
         if (id && id !== lastSel) {
             // cancel editing of the previous selected row if it was in editing state.
@@ -226,25 +224,28 @@ $(function () {
             // if jqGrid not in editing state
             if (typeof lastSel !== "undefined") {
                 $('#grid').restoreRow(lastSel);
-                cancelEditing();
+              //  cancelEditing();
             }
             lastSel = id;
         }
     };
 
+
+    var url = 'api/operations/searchScenaria';
+
     var myGrid = $("#grid").jqGrid({
         datatype: 'json',
         postData: viewModel.getDto(),
         mtype: 'POST',
-        url: Reviewer.rootPath + "api/operations/searchScenaria",
-        colNames: ["Id", "Approved", "Zone", "Category", "Status",  ""],
+        url: Reviewer.rootPath + url,
+        colNames: ["Id", "Approved", "Zone", "Category", "Status", ""],
         colModel: [
             { name: "Id", width: 35, align: "center", key: true, index: 'Id', sortable: true, hidden: true },
             { name: "Approved", width: 0, hidden: true },
             { name: "Zone", width: 75, "index": "Zone", sortable: true, align: "center" },
             { name: "Category", width: 75, "index": "Category", sortable: true, align: "center" },
             { name: "Status", width: 70, "index": "Status", sortable: true, align: "center" },
-            { name: 'act', index: 'act', sortable: false, width: 85, editable: false, formatter: 'actions', formatoptions: { keys: true, editbutton: false, delbutton: false } }
+            { name: 'act', index: 'act', sortable: false, width: 85, editable: false, formatter: 'actions', formatoptions: { keys: true, editbutton: true, delbutton: false } }
         ],
 
         pager: "#pager",
@@ -256,13 +257,12 @@ $(function () {
         save: true,
         gridview: true,
         autoencode: true,
-        caption: "&nbsp; Return records",
+        caption: "&nbsp; Return Scenaria records",
         autowidth: true,
         shrinktofit: false,
-        editurl: Reviewer.rootPath + 'api/operations/searchScenaria',
+        editurl: Reviewer.rootPath + url,
         height: "100%",
         jsonReader: { repeatitems: true },
-        /* ondblClickRow: ondblClickRowAction,*/
         onSelectRow: onSelectRowAction,
         aftersavefunc: function (rowID, response) {
             cancelEditing($('#grid'));
@@ -271,28 +271,9 @@ $(function () {
     });
 
 
-
     $("#grid").jqGrid('navGrid', "#pager", { "edit": false, "add": false, "del": false, "search": false, "refresh": true, "view": false, "position": "left", "cloneToTop": true });
 
     viewModel.myGrid = myGrid;
 
-    function cancelEditing() {
-        if (typeof lastSel !== "undefined") {
-
-            $('#grid').jqGrid('restoreRow', lastSel);
-
-            $("tr#" + lastSel + " div.ui-inline-edit, " + "tr#" + lastSel + " div.ui-inline-del", "#grid").show();
-            $("tr#" + lastSel + " div.ui-inline-save, " + "tr#" + lastSel + " div.ui-inline-cancel", "#grid").hide();
-        }
-    };
-
-
-    function startEditing() {
-        if (typeof lastSel !== "undefined") {
-            $("tr#" + lastSel + " div.ui-inline-edit, " + "tr#" + lastSel + " div.ui-inline-del", "#grid").hide();
-            $("tr#" + lastSel + " div.ui-inline-save, " + "tr#" + lastSel + " div.ui-inline-cancel", "#grid").show();
-        }
-    };
+   
 });
-
-

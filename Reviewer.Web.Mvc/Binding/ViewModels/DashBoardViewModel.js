@@ -8,7 +8,7 @@ window.Reviewer = window.Reviewer || {};
         var self = this;
 
         //properties
-        self.viewModelHelper = new ns.ViewModelHelper();
+        self.ajaxCaller = new ns.AjaxCaller();
         self.isCommandRunning = ko.observable(false);
 
         self.selectedTable = ko.observable();
@@ -21,7 +21,7 @@ window.Reviewer = window.Reviewer || {};
         self.loadMessagesCount = function (model) {
             self.isCommandRunning(true);
 
-            self.viewModelHelper.apiGet('api/resources/tablestatistics',
+            self.ajaxCaller.apiGet('api/resources/tablestatistics',
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.tableCountsArray);
@@ -39,7 +39,7 @@ window.Reviewer = window.Reviewer || {};
         self.loadTableNames = function (model) {
             self.isCommandRunning(true);
 
-            self.viewModelHelper.apiGet('api/resources/tablenames',
+            self.ajaxCaller.apiGet('api/resources/tablenames',
                 null,
                 function (result) {
                     ko.mapping.fromJS(result, {}, self.tableNames);
@@ -73,7 +73,7 @@ window.Reviewer = window.Reviewer || {};
                 "extendedTimeOut": "0"
             };
 
-            self.viewModelHelper.apiPost('api/operations/tablerecords',
+            self.ajaxCaller.apiPost('api/operations/tablerecords',
                 self.getDtoForTableDataReport(), function (result) {
 
                     function createColModelArray(namesArray) {

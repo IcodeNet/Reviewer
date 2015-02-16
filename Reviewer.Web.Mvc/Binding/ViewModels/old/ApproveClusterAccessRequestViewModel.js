@@ -13,7 +13,7 @@ window.Reviewer = window.Reviewer || {};
         self.isCommandRunning = ko.observable(false);
         self.elements = ko.observableArray();
         self.elementsEdited = ko.observableArray();
-        self.viewModelHelper = new window.Reviewer.ViewModelHelper();
+        self.ajaxCaller = new window.Reviewer.AjaxCaller();
         self.approveRequestModel = window.Reviewer.ApproveRequestModel;
       
         self.getDto = function () {
@@ -29,7 +29,7 @@ window.Reviewer = window.Reviewer || {};
     };
 
 
-    ns.ApproveClusterAccessRequestViewModel = vm;
+    ns.ApproveScenarioAccessRequestViewModel = vm;
 
 }(window.Reviewer));
 
@@ -37,7 +37,7 @@ window.Reviewer = window.Reviewer || {};
 $(function () {
     'use strict';
 
-    var viewModel = new window.Reviewer.ApproveClusterAccessRequestViewModel;
+    var viewModel = new window.Reviewer.ApproveScenarioAccessRequestViewModel;
     ko.applyBindings(viewModel);
 
     var lastSel;
@@ -89,11 +89,11 @@ $(function () {
         postData: viewModel.getDto(),
         mtype: 'GET',
         url: Reviewer.rootPath + "api/resources/accessrequestsjson",
-        colNames: ["Id", "ClusterId",  "Cluster", "EmailAddress", "UserName", "Status", ""],
+        colNames: ["Id", "ScenarioId",  "Scenario", "EmailAddress", "UserName", "Status", ""],
         colModel: [
             { name: "Id", width: 35, align: "center", sortable : true , "index": "Id",  key: true },
-            { name: "ClusterId", hidden: true, editable: true, editrules: { edithidden: false }, hidedlg: true },
-            { name: "Cluster", width: 120, "index": "ClusterName", align: "center" },
+            { name: "ScenarioId", hidden: true, editable: true, editrules: { edithidden: false }, hidedlg: true },
+            { name: "Scenario", width: 120, "index": "ScenarioName", align: "center" },
             { name: "EmailAddress", width: 200, "index": "UserEmail", align: "right" },
             { name: "UserName", width: 180, "index": "UserName", align: "right" },
             { name: "Status", width: 120, "index": "Status", editable: true, cellattr: cellattr, align: "center", edittype: "select", formatter: 'select', editoptions: {dataInit: function (elem) { $(elem).addClass('ui-state-highlight').width('100%').height('90%');}, value: "Approved:Approved;Rejected:Rejected;Pending:Pending;Revoked:Revoked" }, sortable: true },
@@ -109,7 +109,7 @@ $(function () {
         save: true,
         gridview: true,
         autoencode: true,
-        caption: "&nbsp; Access requests for Clusters",
+        caption: "&nbsp; Access requests for Scenarios",
         autowidth: true,
         shrinktofit: false,
         editurl: Reviewer.rootPath + 'api/operations/approveaccessrequests',
