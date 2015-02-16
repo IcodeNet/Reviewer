@@ -118,7 +118,7 @@ namespace Reviewer.Web.Mvc.Controllers.API
                             new SearchResponseModel<ReportDataModel>
                             {
                                 Page = 1,
-                                PageSize = 10,
+                                PageSize = 5,
                                 Result = GetTableDataModelData(tableName),
                                 TotalPages = 1,
                                 TotalResults = 10

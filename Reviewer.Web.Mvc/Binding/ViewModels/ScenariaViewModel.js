@@ -21,11 +21,9 @@ window.Reviewer = window.Reviewer || {};
             };
         };
 
-
         var reload = function () {
             vm.myGrid.jqGrid('setGridParam', { postData: vm.getDto() }).trigger('reloadGrid');
         };
-
 
         var search = function () {
             vm.isCommandRunning(true);
@@ -35,16 +33,10 @@ window.Reviewer = window.Reviewer || {};
             vm.isCommandRunning(false);
         };
 
-
         var shouldEnableSearch = function () {
             var shouldEnableButton = (vm.selectedZone() !== undefined &&
                 vm.selectedCategory() !== undefined);
             return shouldEnableButton;
-        };
-
-        var shouldEnableCreate = function () {
-            return (vm.selectedZone() !== undefined &&
-                vm.selectedCategory() !== undefined);
         };
 
         var loadAvailableCategories = function (model) {
@@ -72,7 +64,6 @@ window.Reviewer = window.Reviewer || {};
                     vm.isCommandRunning(false);
                 });
         };
-
         var loadAvailableZones = function (model) {
             vm.isCommandRunning(true);
             vm.ajaxCaller.apiGet('api/resources/zones',
@@ -90,7 +81,7 @@ window.Reviewer = window.Reviewer || {};
 
 
         // INTERFACE
-        //properties
+        // properties
         vm.ajaxCaller = new ns.AjaxCaller();
 
         vm.isCommandRunning = ko.observable(false);
@@ -101,9 +92,8 @@ window.Reviewer = window.Reviewer || {};
         vm.categories = ko.observableArray();
         vm.selectedCategory = ko.observable();
 
-        //methods
+        // methods
         vm.shouldEnableSearch = shouldEnableSearch;
-        vm.shouldEnableCreate = shouldEnableCreate;
 
         vm.loadAvailableZones = loadAvailableZones;
         vm.loadAvailableCategories = loadAvailableCategories;
@@ -112,7 +102,7 @@ window.Reviewer = window.Reviewer || {};
 
 
 
-        //subscriptions
+        // subscriptions
         vm.selectedZone.subscribe(function (newvalue) {
             vm.loadAvailableCategories(vm, { insertmessages: false });
         });
@@ -121,7 +111,7 @@ window.Reviewer = window.Reviewer || {};
 
         });
 
-        // init 
+        // init data load
         loadAvailableZones(vm, { insertmessages: false });
 
     }; // vm
@@ -139,6 +129,11 @@ $(function () {
 
 
     var lastSel;
+    var ids;
+
+    var gridSelectorr = "#grid";
+    var url = 'api/operations/searchScenaria';
+    var urlDetail = 'api/operations/searchScenaria';
 
     var getColumnIndexByName = function (grid, columnName) {
         var cm = grid.jqGrid('getGridParam', 'colModel'), i, l = cm.length;
@@ -155,19 +150,17 @@ $(function () {
 
             $('#grid').jqGrid('restoreRow', lastSel);
 
-            $("tr#" + lastSel + " div.ui-inline-edit, " + "tr#" + lastSel + " div.ui-inline-del", "#grid").show();
-            $("tr#" + lastSel + " div.ui-inline-save, " + "tr#" + lastSel + " div.ui-inline-cancel", "#grid").hide();
+            $("tr#" + lastSel + " div.ui-inline-edit, " + "tr#" + lastSel + " div.ui-inline-del", gridSelectorr).show();
+            $("tr#" + lastSel + " div.ui-inline-save, " + "tr#" + lastSel + " div.ui-inline-cancel", gridSelectorr).hide();
         }
     };
-
 
     function startEditing() {
         if (typeof lastSel !== "undefined") {
-            $("tr#" + lastSel + " div.ui-inline-edit, " + "tr#" + lastSel + " div.ui-inline-del", "#grid").hide();
-            $("tr#" + lastSel + " div.ui-inline-save, " + "tr#" + lastSel + " div.ui-inline-cancel", "#grid").show();
+            $("tr#" + lastSel + " div.ui-inline-edit, " + "tr#" + lastSel + " div.ui-inline-del", gridSelectorr).hide();
+            $("tr#" + lastSel + " div.ui-inline-save, " + "tr#" + lastSel + " div.ui-inline-cancel", gridSelectorr).show();
         }
     };
-
 
     var loadCompleteAction = function () {
         var iCol = getColumnIndexByName(myGrid, 'act');
@@ -217,23 +210,19 @@ $(function () {
     }; //loadCompleteAction
 
     var onSelectRowAction = function (id) {
-        if (id && id !== lastSel) {
-            // cancel editing of the previous selected row if it was in editing state.
-            // jqGrid hold intern savedRow array inside of jqGrid object,
-            // so it is safe to call restoreRow method with any id parameter
-            // if jqGrid not in editing state
-            if (typeof lastSel !== "undefined") {
-                $('#grid').restoreRow(lastSel);
-              //  cancelEditing();
-            }
-            lastSel = id;
+
+         ids = $(gridSelectorr).jqGrid('getGridParam', 'selarrrow');
+
+        if (ids != null) {
+            $("#gridDetail").jqGrid('setGridParam', { postData: viewModel.getDto() });
+            $("#gridDetail").jqGrid('setGridParam', { url: Reviewer.rootPath + urlDetail });
+            $("#gridDetail").jqGrid('setCaption', "Winners Detail: " + ids)
+			.trigger('reloadGrid');
         }
+
     };
 
-
-    var url = 'api/operations/searchScenaria';
-
-    var myGrid = $("#grid").jqGrid({
+    var myGrid = $(gridSelectorr).jqGrid({
         datatype: 'json',
         postData: viewModel.getDto(),
         mtype: 'POST',
@@ -247,7 +236,7 @@ $(function () {
             { name: "Status", width: 70, "index": "Status", sortable: true, align: "center" },
             { name: 'act', index: 'act', sortable: false, width: 85, editable: false, formatter: 'actions', formatoptions: { keys: true, editbutton: true, delbutton: false } }
         ],
-
+        multiselect: true,
         pager: "#pager",
         rowNum: 5,
         rowList: [5, 10, 20, 30, 100],
@@ -271,9 +260,36 @@ $(function () {
     });
 
 
-    $("#grid").jqGrid('navGrid', "#pager", { "edit": false, "add": false, "del": false, "search": false, "refresh": true, "view": false, "position": "left", "cloneToTop": true });
+    $(gridSelectorr).jqGrid('navGrid', "#pager", { "edit": false, "add": false, "del": false, "search": false, "refresh": true, "view": false, "position": "left", "cloneToTop": true });
 
     viewModel.myGrid = myGrid;
 
-   
+
+
+    var myGridDetail = $("#gridDetail").jqGrid({
+        datatype: 'json',
+        postData: viewModel.getDto(),
+        mtype: 'POST',
+        url: Reviewer.rootPath + url,
+        colNames: ["Id", "Approved", "Zone", "Category", "Status", ""],
+        colModel: [
+            { name: "Id", width: 35, align: "center", key: true, index: 'Id', sortable: true, hidden: true },
+            { name: "Approved", width: 0, hidden: true },
+            { name: "Zone", width: 75, "index": "Zone", sortable: true, align: "center" },
+            { name: "Category", width: 75, "index": "Category", sortable: true, align: "center" },
+            { name: "Status", width: 70, "index": "Status", sortable: true, align: "center" },
+            { name: 'act', index: 'act', sortable: false, width: 85, editable: false, formatter: 'actions', formatoptions: { keys: true, editbutton: true, delbutton: false } }
+        ],
+        rowNum: 5,
+        rowList: [5, 10, 20],
+        pager: '#pagerDetail',
+        sortname: 'item',
+        viewrecords: true,
+        sortorder: "asc",
+        multiselect: true,
+        caption: "Winners!!!"
+    }).navGrid('#pagerDetail', { add: false, edit: false, del: false });
+
+
+    viewModel.myGridDetail = myGridDetail;
 });
